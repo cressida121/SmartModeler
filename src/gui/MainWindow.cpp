@@ -39,8 +39,7 @@ MainWindow::MainWindow() : QOpenGLWindow() {
 	format.setSamples(8);
 	setFormat(format);
 
-	m_timer.setInterval(8.3);
-	connect(&m_timer, &QTimer::timeout, this, QOverload<>::of(&MainWindow::update));
+	connect(this, QOverload<>::of(&MainWindow::frameSwapped), this, QOverload<>::of(&MainWindow::update));
 
 }
 
@@ -169,8 +168,6 @@ void MainWindow::initializeGL() {
 	glEnable(GL_MULTISAMPLE);
 
 	m_pCamera = new TurntableCamera();
-
-	m_timer.start();
 }
 
 
@@ -183,8 +180,25 @@ void MainWindow::resizeGL(int w, int h) {
 
 void MainWindow::paintGL() {
 
-	if(m_pCamera == nullptr) {
-		return;
+	const auto currentTime = std::chrono::high_resolution_clock::now();
+	m_frameTimeMs = std::chrono::duration<double, std::milli>(currentTime - m_lastFrameTime).count();
+	m_lastFrameTime = currentTime;
+
+	glm::mat4 cameraMatrix = glm::identity<glm::mat4>();
+
+	if(m_pCamera) {
+		
+		const double fps = 1000. / m_frameTimeMs;
+		const double deltaAngle = 360. * m_rps / fps;
+
+		m_cameraRotation[1] += deltaAngle;
+
+		if (m_cameraRotation[1] > 360.) {
+			m_cameraRotation[1] = 0.;
+		}
+
+		m_pCamera->SetOrientationEuler(m_cameraRotation);
+		cameraMatrix = m_pCamera->GetViewTransform();
 	}
 
 	glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -192,19 +206,6 @@ void MainWindow::paintGL() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(m_shaderProgram);
-
-	static glm::vec3 cameraRot;
-
-	double deltaAngle = 360. / (1000. / m_timer.interval()) * m_rps;
-	cameraRot[1] += deltaAngle;
-	
-	if(cameraRot[1] > 360.) {
-		cameraRot[1] = 0;
-	}
-
-	m_pCamera->SetOrientationEuler(cameraRot);
-	glm::mat4 cameraMatrix = m_pCamera->GetViewTransform();
-
 	glUniformMatrix4fv(m_cameraMatrixLocation, 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 	glUniformMatrix4fv(m_projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(m_projectionMatrix));
 	glBindVertexArray(m_vao);
