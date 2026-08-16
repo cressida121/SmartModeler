@@ -31,6 +31,6 @@ public:
 		}
 	}
 
-protected:
+private:
 	std::vector<std::weak_ptr<T>> m_listeners;
 };
