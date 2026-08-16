@@ -23,18 +23,18 @@ glm::mat4 FreeCamera::GetTransform() const {
 	return translation * m_rotation;
 }
 
-void TurntableCamera::SetTarget(glm::vec3 newTarget) {
+void OrbitCamera::SetTarget(glm::vec3 newTarget) {
 	m_target = newTarget;
 }
 
-void TurntableCamera::SetDistance(float distance) {
+void OrbitCamera::SetDistance(float distance) {
 	// Prevent negative or zero distance which would cause issues in view transform calculations
 	if (distance > 0.01f) {
 		m_distance = distance;
 	}
 }
 
-void TurntableCamera::SetOrientationEuler(glm::vec3 eulerAngles) {
+void OrbitCamera::SetOrientationEuler(glm::vec3 eulerAngles) {
 	float azimuth = glm::radians(eulerAngles.y);
 	float elevation = glm::radians(eulerAngles.x);
 
@@ -43,12 +43,12 @@ void TurntableCamera::SetOrientationEuler(glm::vec3 eulerAngles) {
 	m_rotation = glm::rotate(m_rotation, elevation, { 1.0f, 0.0f, 0.0f });
 }
 
-void TurntableCamera::TranslateLocal(glm::vec3 delta) {
+void OrbitCamera::TranslateLocal(glm::vec3 delta) {
 	glm::vec3 transformedTranslation = m_rotation * glm::vec4(delta, 0.0f);
 	m_target += transformedTranslation;
 }
 
-glm::mat4 TurntableCamera::GetViewTransform() const {
+glm::mat4 OrbitCamera::GetViewTransform() const {
 	glm::mat4 translationInv = glm::identity<glm::mat4>();
 	// Move camera back from the target by distance along the local forward axis
 	translationInv[3] = -(m_distance * m_rotation[2] + glm::vec4(m_target, 0.0f));
@@ -57,7 +57,7 @@ glm::mat4 TurntableCamera::GetViewTransform() const {
 	return glm::transpose(m_rotation) * translationInv;
 }
 
-glm::mat4 TurntableCamera::GetTransform() const {
+glm::mat4 OrbitCamera::GetTransform() const {
 	glm::mat4 translation = glm::identity<glm::mat4>();
 	// Move camera back from the target by distance along the local forward axis
 	translation[3] = m_distance * m_rotation[2] + glm::vec4(m_target, 0.0f);

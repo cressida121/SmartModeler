@@ -167,7 +167,7 @@ void MainWindow::initializeGL() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_MULTISAMPLE);
 
-	m_pCamera = new TurntableCamera();
+	m_pCamera = new OrbitCamera();
 }
 
 

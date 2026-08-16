@@ -36,7 +36,7 @@ private:
 	glm::vec3 m_position = { 0.0f, 0.0f, 0.0f };
 };
 
-class TurntableCamera : public Camera {
+class OrbitCamera : public Camera {
 public:
 	// Inherited from SceneNode
 	glm::mat4 GetTransform() const override;
@@ -46,7 +46,7 @@ public:
 	void SetOrientationEuler(glm::vec3 eulerAngles) override;
 	void TranslateLocal(glm::vec3 delta) override;
 
-	TurntableCamera() : Camera(nullptr, "TurntableCamera") {};
+	OrbitCamera() : Camera(nullptr, "OrbitCamera") {};
 	void SetTarget(glm::vec3 newTarget);
 	void SetDistance(float distance);
 
