@@ -5,6 +5,9 @@
 #include <filesystem>
 #include <fstream>
 
+#include <QtGui/QMouseEvent>
+#include <QtGui/QKeyEvent>
+
 #include "MainWindow.h"
 #include <core/Camera.h>
 
@@ -35,9 +38,32 @@ extern std::vector<uint8_t> GetImagePixels(std::wstring file, uint32_t &width, u
 
 MainWindow::MainWindow() : QOpenGLWindow() {
 
+	m_mouseButtonMap = {
+		{Qt::MouseButton::LeftButton, KeyID::LMB},
+		{Qt::MouseButton::MiddleButton, KeyID::MMB},
+		{Qt::MouseButton::RightButton, KeyID::RMB}
+	};
+
+	m_keyboardKeyMap = {
+		{Qt::Key::Key_Shift, KeyID::SHIFT},
+		{Qt::Key::Key_Control, KeyID::CONTROL},
+		{Qt::Key::Key_Alt, KeyID::ALT}
+	};
+
 	QSurfaceFormat format;
 	format.setSamples(8);
 	setFormat(format);
+
+	m_pCamera = std::make_shared<OrbitCamera>();
+
+	auto orbitCameraPtr = std::dynamic_pointer_cast<OrbitCamera>(m_pCamera);
+	m_orbitCameraController = std::make_shared<OrbitCameraController>(orbitCameraPtr);
+	
+	auto mouseListenerPtr = std::dynamic_pointer_cast<IMouseEventListener>(m_orbitCameraController);
+	EventDispatcher<IMouseEventListener>::AddEventListener(mouseListenerPtr);
+
+	auto keyboardListenerPtr = std::dynamic_pointer_cast<IKeyboardEventListener>(m_orbitCameraController);
+	EventDispatcher<IKeyboardEventListener>::AddEventListener(keyboardListenerPtr);
 
 	connect(this, QOverload<>::of(&MainWindow::frameSwapped), this, QOverload<>::of(&MainWindow::update));
 
@@ -54,7 +80,6 @@ MainWindow::~MainWindow() {
 	glDeleteFramebuffers(1, &m_framebuffer);
 	glDeleteTextures(1, &m_texture);
 
-	delete m_pCamera;
 }
 
 void MainWindow::initializeGL() {
@@ -166,8 +191,6 @@ void MainWindow::initializeGL() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_renderTargetTex, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_MULTISAMPLE);
-
-	m_pCamera = new OrbitCamera();
 }
 
 
@@ -211,4 +234,53 @@ void MainWindow::paintGL() {
 	glBindVertexArray(m_vao);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *event) {
+
+	if(m_mouseButtonMap.count(event->button()) == 0) {
+		return;
+	}
+
+	KeyID keyid = m_mouseButtonMap[event->button()];
+	EventDispatcher<IMouseEventListener>::DispatchEvent([keyid](std::shared_ptr<IMouseEventListener> listener) {
+		listener->OnMouseButtonPress(keyid); });
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *event) {
+
+	if (m_mouseButtonMap.count(event->button()) == 0) {
+		return;
+	}
+
+	KeyID keyid = m_mouseButtonMap[event->button()];
+	EventDispatcher<IMouseEventListener>::DispatchEvent([keyid](std::shared_ptr<IMouseEventListener> listener) {
+		listener->OnMouseButtonRelease(keyid); });
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event) {
+	EventDispatcher<IMouseEventListener>::DispatchEvent([event](std::shared_ptr<IMouseEventListener> listener) {
+		listener->OnMouseMove(event->pos().x(), event->pos().y()); });
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event) {
+
+	if(m_keyboardKeyMap.count(Qt::Key(event->key())) == 0) {
+		return;
+	}
+
+	KeyID keyid = m_keyboardKeyMap[Qt::Key(event->key())];
+	EventDispatcher<IKeyboardEventListener>::DispatchEvent([keyid](std::shared_ptr<IKeyboardEventListener> listener) {
+		listener->OnKeyPress(keyid); });
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event) {
+
+	if (m_keyboardKeyMap.count(Qt::Key(event->key())) == 0) {
+		return;
+	}
+
+	KeyID keyid = m_keyboardKeyMap[Qt::Key(event->key())];
+	EventDispatcher<IKeyboardEventListener>::DispatchEvent([keyid](std::shared_ptr<IKeyboardEventListener> listener) {
+		listener->OnKeyRelease(keyid); });
 }
