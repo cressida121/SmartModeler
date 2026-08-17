@@ -259,8 +259,18 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event) {
-	EventDispatcher<IMouseEventListener>::DispatchEvent([event](std::shared_ptr<IMouseEventListener> listener) {
-		listener->OnMouseMove(event->pos().x(), event->pos().y()); });
+
+	QPoint cursorPosition = event->pos();
+	
+	EventDispatcher<IMouseEventListener>::DispatchEvent([cursorPosition](std::shared_ptr<IMouseEventListener> listener) {
+		listener->OnMouseMove(cursorPosition.x(), cursorPosition.y()); });
+
+	const QPoint delta = cursorPosition - m_lastCursorPosition;
+
+	m_lastCursorPosition = cursorPosition;
+
+	EventDispatcher<IMouseEventListener>::DispatchEvent([delta](std::shared_ptr<IMouseEventListener> listener) {
+		listener->OnMouseMoveDelta(delta.x(), delta.y()); });
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {

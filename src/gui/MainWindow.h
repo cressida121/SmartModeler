@@ -55,6 +55,7 @@ private:
 	std::unordered_map<Qt::MouseButton, KeyID> m_mouseButtonMap;
 	std::unordered_map<Qt::Key, KeyID> m_keyboardKeyMap;
 	std::shared_ptr<OrbitCameraController> m_orbitCameraController;
+	QPoint m_lastCursorPosition;
 };
 
 #endif // MAIN_WINDOW_H
