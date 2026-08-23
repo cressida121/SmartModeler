@@ -1,17 +1,44 @@
 #include "OrbitCameraController.h"
 #include <iostream>
 
-void OrbitCameraController::OnMouseMove(int posx, int posy) {
-	if(m_pCamera.expired()) {
+void OrbitCameraController::ProcessInput(const double frameTimeMS) {
+
+	if (!m_orbitInputBuffer.size() || m_pCamera.expired()) {
 		return;
 	}
 
-	if (m_keysPressed[KeyID::SHIFT]) {
-		std::cout<<"Shift down"<<std::endl;
+	if (m_counter == 0u) {
+
+		m_framesCount = m_inputLagMS / frameTimeMS;
+		m_anglePerFrame = m_orbitInputBuffer.front();
+		m_orbitInputBuffer.pop();
+
+		if (m_framesCount > 0u) {
+			m_anglePerFrame.first /= static_cast<double>(m_framesCount);
+			m_anglePerFrame.second /= static_cast<double>(m_framesCount);
+		}
 	}
+
+	m_rotation.x -= m_anglePerFrame.second;
+	m_rotation.y -= m_anglePerFrame.first;
+	m_pCamera.lock()->SetOrientationEuler(m_rotation);
+
+	if (m_counter < m_framesCount) {
+		m_counter++;
+		return;
+	}
+
+	m_counter = 0u;
+
+}
+
+void OrbitCameraController::OnMouseMove(int posx, int posy) {
 }
 
 void OrbitCameraController::OnMouseMoveDelta(int dx, int dy) {
+	if (KeysDown(m_orbitKeys) && m_orbitInputBuffer.size() < m_inputBufferSize) {
+		m_orbitInputBuffer.push({ dx, dy });
+	}
 }
 
 void OrbitCameraController::OnMouseButtonPress(KeyID keyid) {
@@ -31,4 +58,13 @@ void OrbitCameraController::OnKeyPress(KeyID keyid) {
 
 void OrbitCameraController::OnKeyRelease(KeyID keyid) {
 	m_keysPressed[keyid] = false;
+}
+
+bool OrbitCameraController::KeysDown(const std::vector<KeyID> keys) const {
+	for (auto &keyID : keys) {
+		if (!m_keysPressed[keyID]) {
+			return false;
+		}
+	}
+	return true;
 }

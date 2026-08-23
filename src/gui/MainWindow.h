@@ -45,11 +45,9 @@ private:
 	GLuint m_framebuffer = 0;
 	GLuint m_renderTargetTex = 0;
 
-	glm::vec3 m_cameraRotation {0.0f, 0.0f, 0.0f};
 	glm::mat4x4 m_projectionMatrix = {0};
 	std::shared_ptr<Camera> m_pCamera;
 	std::chrono::high_resolution_clock::time_point m_lastFrameTime;
-	double m_rps = 0.5; // Full 360 rotations per second
 	double m_frameTimeMs = 0.0; // Time taken to render the last frame in milliseconds
 
 	std::unordered_map<Qt::MouseButton, KeyID> m_mouseButtonMap;

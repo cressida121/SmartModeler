@@ -207,20 +207,11 @@ void MainWindow::paintGL() {
 	m_frameTimeMs = std::chrono::duration<double, std::milli>(currentTime - m_lastFrameTime).count();
 	m_lastFrameTime = currentTime;
 
+	m_orbitCameraController->ProcessInput(m_frameTimeMs);
+
 	glm::mat4 cameraMatrix = glm::identity<glm::mat4>();
 
 	if(m_pCamera) {
-		
-		const double fps = 1000. / m_frameTimeMs;
-		const double deltaAngle = 360. * m_rps / fps;
-
-		m_cameraRotation[1] += deltaAngle;
-
-		if (m_cameraRotation[1] > 360.) {
-			m_cameraRotation[1] = 0.;
-		}
-
-		m_pCamera->SetOrientationEuler(m_cameraRotation);
 		cameraMatrix = m_pCamera->GetViewTransform();
 	}
 
