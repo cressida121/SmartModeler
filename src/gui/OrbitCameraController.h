@@ -55,7 +55,7 @@ private:
 	std::queue<std::pair<int, int>> m_orbitInputBuffer;
 	uint32_t m_inputBufferSize = 10u;
 
-	uint32_t m_inputLagMS = 15u;
+	uint32_t m_inputLagMS = 0u;
 	uint32_t m_counter = 0u;
 	uint32_t m_framesCount = 0u;
 

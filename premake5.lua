@@ -44,7 +44,8 @@ project "SmartModeler"
     cppdialect("C++17")
     defines { "_COMPILED_SHADERS_DIR=\"$(SolutionDir.Replace(\'\\\', \'\\\\\'))compiled_shaders\"",
               "_RESOURCES_DIR=\"$(SolutionDir.Replace(\'\\\', \'\\\\\'))resources\"" }
-    buildoptions { "/Zc:__cplusplus", "/permissive-", "/fp:fast" }
+    buildoptions { "/Zc:__cplusplus", "/permissive-", "/wd4996" }
+    floatingpoint "Fast"
 
     prebuildcommands {
         "call $(SolutionDir)src\\shaders\\CompileShaders.bat  $(SolutionDir)compiled_shaders $(SolutionDir)src\\shaders",

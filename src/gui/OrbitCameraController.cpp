@@ -9,7 +9,7 @@ void OrbitCameraController::ProcessInput(const double frameTimeMS) {
 
 	if (m_counter == 0u) {
 
-		m_framesCount = m_inputLagMS / frameTimeMS;
+		m_framesCount = static_cast<uint32_t>(m_inputLagMS / frameTimeMS);
 		m_anglePerFrame = m_orbitInputBuffer.front();
 		m_orbitInputBuffer.pop();
 
@@ -19,8 +19,8 @@ void OrbitCameraController::ProcessInput(const double frameTimeMS) {
 		}
 	}
 
-	m_rotation.x -= m_anglePerFrame.second;
-	m_rotation.y -= m_anglePerFrame.first;
+	m_rotation.x -= static_cast<float>(m_anglePerFrame.second);
+	m_rotation.y -= static_cast<float>(m_anglePerFrame.first);
 	m_pCamera.lock()->SetOrientationEuler(m_rotation);
 
 	if (m_counter < m_framesCount) {
