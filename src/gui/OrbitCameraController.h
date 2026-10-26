@@ -23,6 +23,8 @@ public:
 
 private:
 
+	bool KeysDown(const std::vector<KeyID> keys) const;
+
 	// Inherited via IMouseEventListener
 	void OnMouseMove(int posx, int posy) override;
 
@@ -39,9 +41,6 @@ private:
 
 	void OnKeyRelease(KeyID keyid) override;
 
-	bool KeysDown(const std::vector<KeyID> keys) const;
-
-
 
 	// Style - group logically realted fields
 
@@ -49,8 +48,8 @@ private:
 
 	std::array<bool, 7> m_keysPressed = { false, false, false, false, false, false, false };
 	std::vector<KeyID> m_orbitKeys = {KeyID::LMB, KeyID::ALT};
-	std::vector<KeyID> m_panKeys;
-	std::vector<KeyID> m_zoomKeys;
+	std::vector<KeyID> m_panKeys = { KeyID::LMB, KeyID::SHIFT };
+	std::vector<KeyID> m_zoomKeys = { KeyID::LMB, KeyID::CONTROL };
 
 	std::queue<std::pair<int, int>> m_orbitInputBuffer;
 	uint32_t m_inputBufferSize = 10u;
@@ -60,8 +59,10 @@ private:
 	uint32_t m_framesCount = 0u;
 
 	std::pair<double, double> m_anglePerFrame;
+	float m_panSpeed = 0.1f;
 	glm::vec3 m_rotation{0.};
-
+	glm::vec3 m_panDelta{0.};
+	float m_zoom = 100.0f;
 };
 
 #endif // !ORBIT_CAMERA_CONTROLLER_H
