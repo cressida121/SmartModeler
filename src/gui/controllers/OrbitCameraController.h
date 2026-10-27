@@ -2,7 +2,7 @@
 #define ORBIT_CAMERA_CONTROLLER_H
 
 #include <core/Camera.h>
-#include "IUserInputListener.h"
+#include <gui/IUserInputListener.h>
 
 #include <memory>
 #include <array>

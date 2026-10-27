@@ -7,10 +7,10 @@ project "SmartModeler"
     language "C++"
     targetdir "bin/%{cfg.buildcfg}"
     architecture "x64"
-    files { "**.h", "**.cpp", "**.c"}
+    files { "**.h", "**.cpp", "**.c", "**.lua" }
 
     vpaths {
-        ["qt_moc/*"] = "src/moc/moc_MainWindow.cpp",
+        ["qt_moc/*"] = {"src/moc/moc_MainWindow.cpp", "src/moc/moc_View3D.cpp"},
         ["*"] = "src"
     }
 
@@ -49,13 +49,15 @@ project "SmartModeler"
 
     prebuildcommands {
         "call $(SolutionDir)src\\shaders\\CompileShaders.bat  $(SolutionDir)compiled_shaders $(SolutionDir)src\\shaders",
-        "moc.exe $(SolutionDir)src\\gui\\MainWindow.h -o $(SolutionDir)src\\moc\\moc_MainWindow.cpp"
+        "moc.exe $(SolutionDir)src\\gui\\MainWindow.h -o $(SolutionDir)src\\moc\\moc_MainWindow.cpp",
+        "moc.exe $(SolutionDir)src\\gui\\view3d\\View3D.h -o $(SolutionDir)src\\moc\\moc_View3D.cpp"
     }
 
     filter "configurations:Debug"
         defines {"DEBUG"}
         links {
             "Qt6OpenGLd.lib",
+            "Qt6OpenGLWidgetsd.lib",
             "Qt6Widgetsd.lib",
             "Qt6Cored.lib",
             "Qt6Guid.lib",
@@ -66,6 +68,7 @@ project "SmartModeler"
         defines {"NDEBUG"}
         links {
             "Qt6OpenGL.lib",
+            "Qt6OpenGLWidgets.lib",
             "Qt6Widgets.lib",
             "Qt6Core.lib",
             "Qt6Gui.lib",
