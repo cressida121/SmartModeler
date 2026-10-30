@@ -5,9 +5,6 @@
 #include <filesystem>
 #include <fstream>
 
-#include <QtGui/QMouseEvent>
-#include <QtGui/QKeyEvent>
-
 #include "View3D.h"
 #include <core/Camera.h>
 
@@ -38,32 +35,11 @@ extern std::vector<uint8_t> GetImagePixels(std::wstring file, uint32_t &width, u
 
 View3D::View3D() : QOpenGLWidget() {
 
-	m_mouseButtonMap = {
-		{Qt::MouseButton::LeftButton, KeyID::LMB},
-		{Qt::MouseButton::MiddleButton, KeyID::MMB},
-		{Qt::MouseButton::RightButton, KeyID::RMB}
-	};
-
-	m_keyboardKeyMap = {
-		{Qt::Key::Key_Shift, KeyID::SHIFT},
-		{Qt::Key::Key_Control, KeyID::CONTROL},
-		{Qt::Key::Key_Alt, KeyID::ALT}
-	};
-
 	QSurfaceFormat format;
 	format.setSamples(8);
 	setFormat(format);
 	setFocusPolicy(Qt::FocusPolicy::StrongFocus);
 	m_pCamera = std::make_shared<OrbitCamera>();
-
-	auto orbitCameraPtr = std::dynamic_pointer_cast<OrbitCamera>(m_pCamera);
-	m_orbitCameraController = std::make_shared<OrbitCameraController>(orbitCameraPtr);
-	
-	auto mouseListenerPtr = std::dynamic_pointer_cast<IMouseEventListener>(m_orbitCameraController);
-	EventDispatcher<IMouseEventListener>::AddEventListener(mouseListenerPtr);
-
-	auto keyboardListenerPtr = std::dynamic_pointer_cast<IKeyboardEventListener>(m_orbitCameraController);
-	EventDispatcher<IKeyboardEventListener>::AddEventListener(keyboardListenerPtr);
 
 	connect(this, QOverload<>::of(&View3D::frameSwapped), this, QOverload<>::of(&View3D::update));
 
@@ -207,7 +183,7 @@ void View3D::paintGL() {
 	m_frameTimeMs = std::chrono::duration<double, std::milli>(currentTime - m_lastFrameTime).count();
 	m_lastFrameTime = currentTime;
 
-	m_orbitCameraController->ProcessInput(m_frameTimeMs);
+	//m_pCamera->
 
 	glm::mat4 cameraMatrix = glm::identity<glm::mat4>();
 
@@ -225,63 +201,4 @@ void View3D::paintGL() {
 	glBindVertexArray(m_vao);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
-}
-
-void View3D::mousePressEvent(QMouseEvent *event) {
-
-	if(m_mouseButtonMap.count(event->button()) == 0) {
-		return;
-	}
-
-	KeyID keyid = m_mouseButtonMap[event->button()];
-	EventDispatcher<IMouseEventListener>::DispatchEvent([keyid](std::shared_ptr<IMouseEventListener> listener) {
-		listener->OnMouseButtonPress(keyid); });
-}
-
-void View3D::mouseReleaseEvent(QMouseEvent *event) {
-
-	if (m_mouseButtonMap.count(event->button()) == 0) {
-		return;
-	}
-
-	KeyID keyid = m_mouseButtonMap[event->button()];
-	EventDispatcher<IMouseEventListener>::DispatchEvent([keyid](std::shared_ptr<IMouseEventListener> listener) {
-		listener->OnMouseButtonRelease(keyid); });
-}
-
-void View3D::mouseMoveEvent(QMouseEvent *event) {
-
-	QPoint cursorPosition = event->pos();
-	
-	EventDispatcher<IMouseEventListener>::DispatchEvent([cursorPosition](std::shared_ptr<IMouseEventListener> listener) {
-		listener->OnMouseMove(cursorPosition.x(), cursorPosition.y()); });
-
-	const QPoint delta = cursorPosition - m_lastCursorPosition;
-
-	m_lastCursorPosition = cursorPosition;
-
-	EventDispatcher<IMouseEventListener>::DispatchEvent([delta](std::shared_ptr<IMouseEventListener> listener) {
-		listener->OnMouseMoveDelta(delta.x(), delta.y()); });
-}
-
-void View3D::keyPressEvent(QKeyEvent *event) {
-
-	if(m_keyboardKeyMap.count(Qt::Key(event->key())) == 0) {
-		return;
-	}
-
-	KeyID keyid = m_keyboardKeyMap[Qt::Key(event->key())];
-	EventDispatcher<IKeyboardEventListener>::DispatchEvent([keyid](std::shared_ptr<IKeyboardEventListener> listener) {
-		listener->OnKeyPress(keyid); });
-}
-
-void View3D::keyReleaseEvent(QKeyEvent *event) {
-
-	if (m_keyboardKeyMap.count(Qt::Key(event->key())) == 0) {
-		return;
-	}
-
-	KeyID keyid = m_keyboardKeyMap[Qt::Key(event->key())];
-	EventDispatcher<IKeyboardEventListener>::DispatchEvent([keyid](std::shared_ptr<IKeyboardEventListener> listener) {
-		listener->OnKeyRelease(keyid); });
 }

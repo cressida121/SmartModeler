@@ -10,10 +10,8 @@
 #include <core/EventDispatcher.h>
 
 // Qt code is allowed only inside classes that inherit from QObject
-class View3D:
-	public QOpenGLWidget,
-	protected EventDispatcher<IMouseEventListener>,
-	protected EventDispatcher<IKeyboardEventListener> {
+
+class View3D: public QOpenGLWidget{
 
 	Q_OBJECT
 
@@ -25,12 +23,10 @@ public:
 	void resizeGL(int w, int h) override;
 	void paintGL() override;
 
-	// Convert Qt mouse and keyboard events to generic events and dispatch them to the listeners
-	void mousePressEvent(QMouseEvent *event) override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
-	void mouseMoveEvent(QMouseEvent *event) override;
-	void keyPressEvent(QKeyEvent *event) override;
-	void keyReleaseEvent(QKeyEvent *event) override;
+	//void Rotate(dx,dy,dz)
+	//void Pan(dx,dy) - ignored for free camera
+	//void Zoom(delta) - ignored for free camera
+	//void Translate(dx,dy,dz) - only for free camera
 
 private:
 	GLuint m_vertexShader = 0;
@@ -49,11 +45,26 @@ private:
 	std::shared_ptr<Camera> m_pCamera;
 	std::chrono::high_resolution_clock::time_point m_lastFrameTime;
 	double m_frameTimeMs = 0.0; // Time taken to render the last frame in milliseconds
+	
+};
 
-	std::unordered_map<Qt::MouseButton, KeyID> m_mouseButtonMap;
-	std::unordered_map<Qt::Key, KeyID> m_keyboardKeyMap;
-	std::shared_ptr<OrbitCameraController> m_orbitCameraController;
-	QPoint m_lastCursorPosition;
+
+class View3DMouseController : public IMouseEventListener/*, AppActionListener*/ {
+
+public:
+
+	View3DMouseController(View3D* view) : m_view(view) {}
+
+	// Inherited via IMouseEventListener
+	void OnMouseMove(int posx, int posy) override;
+	void OnMouseMoveDelta(int dx, int dy) override;
+	void OnMouseButtonPress(KeyID keyid) override;
+	void OnMouseButtonRelease(KeyID keyid) override;
+	void OnMouseWheelScroll(int delta) override;
+
+private:
+	View3D* m_view = nullptr;
+
 };
 
 #endif // VIEW3D_H
