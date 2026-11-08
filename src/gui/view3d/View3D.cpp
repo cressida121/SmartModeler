@@ -10,6 +10,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+
 std::vector<char> LoadCompiledShaderBytes(std::string filePath) {
 
 	std::vector<char> bytes;
@@ -33,16 +34,13 @@ std::vector<char> LoadCompiledShaderBytes(std::string filePath) {
 extern std::vector<uint8_t> GetImagePixels(std::wstring file, uint32_t &width, uint32_t &height, uint32_t &pixelByteSize);
 
 
-View3D::View3D() : QOpenGLWidget() {
+View3D::View3D(QWidget *parent, std::shared_ptr<Camera> camera) : QOpenGLWidget(parent), m_pCamera(camera) {
 
 	QSurfaceFormat format;
 	format.setSamples(8);
 	setFormat(format);
-	setFocusPolicy(Qt::FocusPolicy::StrongFocus);
-	m_pCamera = std::make_shared<OrbitCamera>();
-
+	
 	connect(this, QOverload<>::of(&View3D::frameSwapped), this, QOverload<>::of(&View3D::update));
-
 }
 
 View3D::~View3D() {
@@ -183,12 +181,10 @@ void View3D::paintGL() {
 	m_frameTimeMs = std::chrono::duration<double, std::milli>(currentTime - m_lastFrameTime).count();
 	m_lastFrameTime = currentTime;
 
-	//m_pCamera->
-
 	glm::mat4 cameraMatrix = glm::identity<glm::mat4>();
 
-	if(m_pCamera) {
-		cameraMatrix = m_pCamera->GetViewTransform();
+	if(auto camera = m_pCamera.lock()) {
+		cameraMatrix = camera->GetViewTransform();
 	}
 
 	glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -201,4 +197,20 @@ void View3D::paintGL() {
 	glBindVertexArray(m_vao);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+void View3D::BindCamera(std::shared_ptr<Camera> camera) {
+	m_pCamera = camera;
+}
+
+void View3D::mousePressEvent(QMouseEvent *event) {
+	QtMousePressEvent(event);
+}
+
+void View3D::mouseReleaseEvent(QMouseEvent *event) {
+	QtMouseReleaseEvent(event);
+}
+
+void View3D::mouseMoveEvent(QMouseEvent *event) {
+	QtMouseMoveEvent(event);
 }

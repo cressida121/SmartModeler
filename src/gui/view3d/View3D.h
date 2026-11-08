@@ -2,31 +2,29 @@
 #define VIEW3D_H
 
 #include <QtOpenGLWidgets/QOpenGLWidget>
-#include <QtCore/QTimer>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <gui/IUserInputListener.h>
-#include <gui/controllers/OrbitCameraController.h>
-#include <core/EventDispatcher.h>
+#include <gui/controllers/CameraController.h>
+#include <gui/QtMouseEventDispatcher.h>
 
 // Qt code is allowed only inside classes that inherit from QObject
 
-class View3D: public QOpenGLWidget{
+class View3D: public QOpenGLWidget, public QtMouseEventDispatcher {
 
 	Q_OBJECT
 
 public:
-	View3D();
+	View3D(QWidget *parent, std::shared_ptr<Camera> camera);
 	~View3D();
 
 	void initializeGL() override;
 	void resizeGL(int w, int h) override;
 	void paintGL() override;
+	void BindCamera(std::shared_ptr<Camera> camera);
 
-	//void Rotate(dx,dy,dz)
-	//void Pan(dx,dy) - ignored for free camera
-	//void Zoom(delta) - ignored for free camera
-	//void Translate(dx,dy,dz) - only for free camera
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
 	GLuint m_vertexShader = 0;
@@ -42,28 +40,11 @@ private:
 	GLuint m_renderTargetTex = 0;
 
 	glm::mat4x4 m_projectionMatrix = {0};
-	std::shared_ptr<Camera> m_pCamera;
+	std::weak_ptr<Camera> m_pCamera;
 	std::chrono::high_resolution_clock::time_point m_lastFrameTime;
 	double m_frameTimeMs = 0.0; // Time taken to render the last frame in milliseconds
-	
-};
 
-
-class View3DMouseController : public IMouseEventListener/*, AppActionListener*/ {
-
-public:
-
-	View3DMouseController(View3D* view) : m_view(view) {}
-
-	// Inherited via IMouseEventListener
-	void OnMouseMove(int posx, int posy) override;
-	void OnMouseMoveDelta(int dx, int dy) override;
-	void OnMouseButtonPress(KeyID keyid) override;
-	void OnMouseButtonRelease(KeyID keyid) override;
-	void OnMouseWheelScroll(int delta) override;
-
-private:
-	View3D* m_view = nullptr;
+	bool m_isMousePressed = false;
 
 };
 
